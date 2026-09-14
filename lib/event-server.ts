@@ -1,0 +1,15 @@
+import {env} from 'cloudflare:workers';
+type Runtime = {DB?:D1Database;EVENT_SECRET?:string;STAFF_PASSWORD?:string};
+export function runtime(){const e=env as Runtime;if(!e.DB||!e.EVENT_SECRET||!e.STAFF_PASSWORD)throw Error('活動系統尚未設定完成');return e as Required<Runtime>;}
+export function cookie(req:Request,name:string){return req.headers.get('cookie')?.split(';').map(s=>s.trim()).find(s=>s.startsWith(name+'='))?.slice(name.length+1)||'';}
+export function cookieHeader(req:Request,name:string,value:string,maxAge=60*60*24*30){return `${name}=${value}; Path=/; HttpOnly; SameSite=Strict; Max-Age=${maxAge}${new URL(req.url).protocol==='https:'?'; Secure':''}`;}
+export async function mac(value:string){const key=await crypto.subtle.importKey('raw',new TextEncoder().encode(runtime().EVENT_SECRET),{name:'HMAC',hash:'SHA-256'},false,['sign']);return Array.from(new Uint8Array(await crypto.subtle.sign('HMAC',key,new TextEncoder().encode(value)))).map(b=>b.toString(16).padStart(2,'0')).join('');}
+export function same(a:string,b:string){if(a.length!==b.length)return false;let diff=0;for(let i=0;i<a.length;i++)diff|=a.charCodeAt(i)^b.charCodeAt(i);return diff===0;}
+export async function staff(req:Request){const token=cookie(req,'mb_staff'),[expiry,sig]=token.split('.');return !!expiry&&Number(expiry)>Date.now()&&Number(expiry)<Date.now()+9*3600000&&!!sig&&same(sig,await mac('staff:'+expiry));}
+export function originGuard(req:Request){const origin=req.headers.get('origin');if(!origin||origin!==new URL(req.url).origin)throw new HttpError('請從活動頁面操作',403);}
+export class HttpError extends Error{constructor(message:string,public status=400){super(message)}}
+export function json(data:unknown,status=200,headers:Record<string,string>={}){return Response.json(data,{status,headers:{'Cache-Control':'no-store',...headers}});}
+export function failure(e:unknown){if(e instanceof HttpError)return json({error:e.message},e.status);console.error('Event service failure',e);return json({error:'暫時無法連線，請稍後再試。'},503);}
+export async function rate(key:string,limit:number){const db=runtime().DB;const bucket=Math.floor(Date.now()/600000);const row=await db.prepare('INSERT INTO attempts (id, bucket, count) VALUES (?, ?, 1) ON CONFLICT(id) DO UPDATE SET count=CASE WHEN bucket=excluded.bucket THEN count+1 ELSE 1 END, bucket=excluded.bucket RETURNING count').bind(key,bucket).first<{count:number}>();if(!row||row.count>limit)throw new HttpError('嘗試次數過多，請於 10 分鐘後再試。',429);}
+export async function getParticipant(req:Request){const token=cookie(req,'mb_guest');if(!/^[a-f0-9]{64}$/.test(token))return null;return runtime().DB.prepare('SELECT id, claim_code, redeemed_at FROM participants WHERE token_hash=?').bind(await mac('guest:'+token)).first<{id:string;claim_code:string;redeemed_at:string|null}>();}
+export async function stateFor(p:{id:string;claim_code:string;redeemed_at:string|null}){const rows=await runtime().DB.prepare('SELECT station FROM stamps WHERE participant_id=? ORDER BY station').bind(p.id).all<{station:number}>();return {id:p.id,claimCode:rows.results.length>=3?p.claim_code:'',stamps:rows.results.map(s=>s.station),redeemedAt:p.redeemed_at};}
