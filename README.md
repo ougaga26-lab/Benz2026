@@ -47,3 +47,7 @@ React + Vinext，Cloudflare Workers API，D1 SQLite，qrcode 產生 QR，ZXing B
 ## 驗證
 
 `node node_modules/typescript/bin/tsc --noEmit`、`npm run build`、啟動本機後 `node scripts/test-event.mjs`。整合測試使用獨立測試訪客，驗證簽章竄改、過期、權限、重複核實、三章資格與併發兌獎。
+
+## 工作人員數據分頁
+登入後可切換「掃碼核實」與「活動數據」。數據包含參加者識別數、開始體驗數、三章達標數、實際核銷份數、達標尚未兌換數、通關總次數、各關與臺灣時間每日統計，以及每頁 50 筆的參加者紀錄。每 30 秒更新。CSV 含建立、達標及兌禮的 UTC 時間；單次上限一萬筆，超過會提示分批處理，不截斷下載。資料含既有 Demo 測試紀錄。
+驗證：node scripts/test-stats.mjs（使用本機 .env 登入，唯讀核對統計、CSV 與權限）。

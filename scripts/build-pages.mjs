@@ -3,7 +3,7 @@ import path from 'node:path';
 import {build} from 'vite';
 import react from '@vitejs/plugin-react';
 const root=process.cwd(),temp=path.join(root,'.pages-src');fs.mkdirSync(temp,{recursive:true});
-for(const [input,output]of [['app/experience.tsx','experience.tsx'],['app/qr-pass.tsx','qr-pass.tsx'],['app/staff/page.tsx','staff.tsx']]){
+for(const [input,output]of [['app/experience.tsx','experience.tsx'],['app/qr-pass.tsx','qr-pass.tsx'],['app/staff/page.tsx','staff.tsx'],['app/staff/stats.tsx','stats.tsx']]){
 let source=fs.readFileSync(input,'utf8');
 source="import {apiFetch} from './api';\n"+source.replaceAll('fetch(', 'apiFetch(');
 source=source.replaceAll('src="/', 'src="/Benz2026/').replaceAll('?"/', '?"/Benz2026/').replaceAll(':"/', ':"/Benz2026/').replaceAll("?'/", "?'/Benz2026/").replaceAll(":'/", ":'/Benz2026/");
