@@ -1,3 +1,15 @@
+## GitHub Pages + Cloudflare（目前使用）
+
+活動：https://ougaga26-lab.github.io/Benz2026/
+
+工作人員：https://ougaga26-lab.github.io/Benz2026/?staff=1
+
+前端執行 node scripts/build-pages.mjs 產生 docs，由 GitHub Pages main /docs 發佈。API 由 wrangler.event.json 部署到獨立 Workers，資料庫為 benz2026-event。秘密以 wrangler secret 管理，不在 GitHub。訪客憑證存在 localStorage，工作人員登入憑證存在 sessionStorage（8 小時有效）；請勿在此 GitHub Pages 網域放置不受信任的程式。掃碼需 HTTPS 及相機權限。清除瀏覽資料或換裝置會產生新訪客，正式活動仍須接入報到身分以限制每人一次。
+
+測試：node scripts/test-cloudflare.mjs（需本機 .env，會新增一位測試參加者並完成蓋章兌禮）。
+
+以下為原始本機／Sites 版本說明：
+
 # Benz2026 · Mercedes-Benz 華山探索體驗
 
 手機活動網站：品牌開場 → 活動介紹 → 六關集章 → QR 核實 → 三章兌禮。

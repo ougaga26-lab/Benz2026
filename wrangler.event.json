@@ -1,0 +1,14 @@
+{
+  "name": "benz2026-api",
+  "main": "worker/index.ts",
+  "compatibility_date": "2026-09-14",
+  "account_id": "259306d065d5b72fd51b48a90668c229",
+  "workers_dev": true,
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "benz2026-event",
+      "database_id": "acceb667-a260-422c-9609-6a4004de4049"
+    }
+  ]
+}
